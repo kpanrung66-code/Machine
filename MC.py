@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 19 15:58:18 2026
-
+ 
 @author: BusRmutt
 """
-
+ 
 import pickle
 from streamlit_option_menu import option_menu
 import streamlit as st
-
-used_car_model = pickle.load(open('C:/Users/BusRmutt/Desktop/ML/Used_cars_model.sav','rb'))
-riding_model = pickle.load(open('C:/Users/BusRmutt/Desktop/ML/RidingMowers_model.sav','rb'))
-
-
-
+ 
+used_car_model = pickle.load(open('Used_cars_model.sav','rb'))
+riding_model = pickle.load(open('RidingMowers_model.sav','rb'))
+bmi_model = pickle.load(open('bmi_model.sav','rb'))
+ 
+ 
 fuel_map = {
     'Diesel': 0,
     'Electric': 1,
     'Petrol': 2
 }
-
+ 
 engine_map = {
     '800': 0,
     '1000': 1,
@@ -32,7 +32,7 @@ engine_map = {
     '4000': 8,
     '5000': 9
 }
-
+ 
 brand_map = {
     'BMW': 0,
     'Chevrolet': 1,
@@ -45,18 +45,64 @@ brand_map = {
     'Toyota': 8,
     'Volkswagen': 9
 }
-
+ 
 transmission_map = {
     'Automatic': 0,
     'Manual': 1
 }
 with st.sidebar:
     selected = option_menu('Prediction',
-                           ['Ridingmower','Used_cars'])
-
+                           ['Ridingmower','Used_cars','BMI'])
+ 
+if selected == 'BMI':
+    st.title('BMI Classification')
+ 
+    # 🔽 Dropdown สำหรับ Gender
+    gender_option = st.selectbox(
+        'Gender',
+        ('Male', 'Female')
+    )
+ 
+    # แปลงค่าให้ตรงกับ dataset (จากรูปเห็นว่า 1 และ 0)
+    if gender_option == 'Male':
+        Gender = 1
+    else:
+        Gender = 0
+ 
+    Height = st.number_input('Height (cm)', min_value=50, max_value=250)
+    Weight = st.number_input('Weight (kg)', min_value=10.0, max_value=300.0)
+ 
+    if st.button('Predict'):
+ 
+        bmi_prediction = bmi_model.predict([[
+            Gender,
+            Height,
+            Weight
+        ]])
+ 
+        bmi_class = int(bmi_prediction[0])
+ 
+        # Mapping BMI Class
+        bmi_dict = {
+            0: 'Extremely Weak',
+            1: 'Weak',
+            2: 'Normal',
+            3: 'Overweight',
+            4: 'Obesity',
+            5: 'Extreme Obesity'
+        }
+ 
+        result = bmi_dict.get(bmi_class, 'Unknown')
+ 
+        # คำนวณ BMI จริง
+        bmi_value = Weight / ((Height / 100) ** 2)
+ 
+        st.info(f'Calculated BMI: {bmi_value:.2f}')
+        st.success(f'BMI Category: {result}')
+ 
+ 
 if selected== 'Ridingmower':
     st.title('Riding Mower Classification')
-    
     Income = st.text_input('Income')
     LotSize = st.text_input('LotSize')
     Riding_prediction = ''
@@ -70,7 +116,6 @@ if selected== 'Ridingmower':
         else:
             Riding_prediction = 'Non Owner'
     st.success(Riding_prediction)
-    
 if selected == 'Used_cars':
     st.title('ประเมินราคารถมือ 2')
     make_year = st.text_input('ปีที่ผลิต')
@@ -94,4 +139,9 @@ if selected == 'Used_cars':
             float(accidents_reported)
             ]])
         Price_predict = round(Price_predict[0],2)
+ 
+ 
     st.success(Price_predict)
+ 
+ 
+ 
